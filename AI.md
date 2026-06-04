@@ -133,6 +133,28 @@ Claude made the following corrections:
 - Added TypeScript declaration for *.svg?react imports in env.d.ts
 - Updated Input.tsx and PasswordInput.tsx to import icons instead of inline SVGs
 
+### 2026-06-04 (Diagnosis Pass)
+
+**Prompt**
+
+> Diagnose two visual bugs against the design reference — (1) decorative shapes rendering as blurry blobs instead of crisp geometric shapes, and (2) input error states showing coral/orange border on focus instead of red. Report root causes and proposed fixes; do not modify any code yet.
+
+**Outcome** *(diagnosis only — no code changes)*
+
+**Issue 1: Shapes are blobs, not geometric shapes**
+
+- **Root cause:** `AuthShapes.tsx` was built with CSS gradient blobs using `blur-2xl`, `bg-gradient-to-br`, and organic `rounded-[40%_60%_...]` shapes instead of the crisp geometric shapes specified in the design reference (quarter-circles, ring outlines, triangles, dot clusters).
+- **Evidence:** Every shape div in `AuthShapes.tsx` includes `blur-*` classes and gradient fills. The design reference `.cl-shape` class expects absolutely-positioned elements with solid colors, borders, and clip-paths — no blur.
+- **Proposed fix:** Rewrite `AuthShapes.tsx` with actual geometric shapes: semi-circles via `clip-path`, ring outlines via `border` (no fill), triangles via SVG or `clip-path: polygon()`, dot clusters via multiple small circles. Remove all `blur-*` and gradient classes.
+
+**Issue 2: Error border turns coral on focus**
+
+- **Root cause:** The Tailwind flat utility approach lacks the CSS specificity of the design reference. In `coursely-components.css`, `.cl-field.is-error .cl-input` (2 classes) beats `.cl-input:focus` (1 class), so error border persists on focus. In the current implementation, `focus:border-error` competes with other utilities at the same specificity level, and Tailwind's generated CSS ordering may not guarantee the error color wins.
+- **Evidence:** `Input.tsx` line 38 uses `${error ? 'border-error focus:border-error ...' : 'focus:border-coral-500 ...'}`. Despite including `focus:border-error`, the user observes coral borders on focused error fields.
+- **Proposed fix:** Either (a) wrap inputs in a container with an `is-error` class and use `group-*` variants for higher specificity, or (b) remove `focus:border-*` from the error branch entirely — let the base `border-error` persist since `focus:border-coral-500` only appears in the else branch.
+
+**Status:** Diagnosis complete. Awaiting approval before implementing fixes.
+
 ---
 
 ## Phase 2 — Backend
