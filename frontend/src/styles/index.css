@@ -1,0 +1,143 @@
+/* Google Fonts — must be first */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+@import "tailwindcss";
+
+/*
+ * Coursely Design Tokens — Light Theme
+ * Mapped from design-reference/coursely-tokens.css
+ * Units: rem for accessibility (px noted in comments for reference)
+ * px used only for hairline borders, focus rings, and fixed visual details
+ *
+ * To add dark theme later:
+ * 1. Define dark-mode colors as --color-*-dark in @theme
+ * 2. Use @media (prefers-color-scheme: dark) or .dark class
+ * 3. Swap CSS custom properties accordingly
+ */
+
+@theme {
+  /* ========== COLORS — Light Theme ========== */
+  /* Coral (Primary) */
+  --color-coral-50: #FFF4EC;
+  --color-coral-100: #FFE7D4;
+  --color-coral-300: #FBB783;
+  --color-coral-500: #F99148;
+  --color-coral-600: #F2792B;
+  --color-coral-700: #D8631A;
+
+  /* Ink (Text) */
+  --color-ink-900: #1B2440;
+  --color-ink-700: #3A4668;
+  --color-ink-500: #6B7596;
+  --color-ink-300: #A6AEC4;
+
+  /* Accents */
+  --color-teal-500: #1FB6A6;
+  --color-violet-500: #7C6BF0;
+
+  /* Backgrounds & Surfaces — Light Theme */
+  --color-bg: #FFF9F4;
+  --color-surface: #FFFFFF;
+  --color-border: #ECE3D9;
+  --color-border-strong: #DDD2C5;
+
+  /* Feedback */
+  --color-success: #1FA56A;
+  --color-success-bg: #E6F6EE;
+  --color-error: #E5484D;
+  --color-error-bg: #FDECEC;
+
+  /* ========== TYPOGRAPHY ========== */
+  --font-display: 'Fredoka', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+
+  /* Font Sizes (converted to rem: value / 16) */
+  --text-display: 2.5rem;       /* 40px */
+  --text-h1: 1.875rem;          /* 30px */
+  --text-h2: 1.375rem;          /* 22px */
+  --text-lg: 1.0625rem;         /* 17px */
+  --text-base: 0.9375rem;       /* 15px */
+  --text-sm: 0.84375rem;        /* 13.5px */
+  --text-xs: 0.75rem;           /* 12px */
+
+  /* Line Heights */
+  --leading-tight: 1.08;
+  --leading-snug: 1.3;
+  --leading-normal: 1.55;
+
+  /* ========== SPACING (4px = 0.25rem base) ========== */
+  --spacing-1: 0.25rem;         /* 4px */
+  --spacing-2: 0.5rem;          /* 8px */
+  --spacing-3: 0.75rem;         /* 12px */
+  --spacing-4: 1rem;            /* 16px */
+  --spacing-5: 1.25rem;         /* 20px */
+  --spacing-6: 1.5rem;          /* 24px */
+  --spacing-7: 1.75rem;         /* 28px */
+  --spacing-8: 2rem;            /* 32px */
+  --spacing-9: 2.25rem;         /* 36px */
+  --spacing-10: 2.5rem;         /* 40px */
+  --spacing-11: 2.75rem;        /* 44px */
+  --spacing-12: 3rem;           /* 48px */
+  --spacing-14: 3.5rem;         /* 56px */
+  --spacing-16: 4rem;           /* 64px */
+  --spacing-20: 5rem;           /* 80px */
+  --spacing-22: 5.5rem;         /* 88px */
+
+  /* ========== RADIUS (converted to rem) ========== */
+  --radius-sm: 0.625rem;        /* 10px */
+  --radius-md: 0.875rem;        /* 14px - inputs, buttons */
+  --radius-lg: 1.25rem;         /* 20px */
+  --radius-xl: 1.75rem;         /* 28px - cards */
+  --radius-full: 999px;         /* keep px for full round */
+
+  /* ========== SHADOWS (keep px for precision) ========== */
+  --shadow-sm: 0 2px 6px -2px rgba(27, 36, 64, 0.12);
+  --shadow-md: 0 10px 24px -12px rgba(27, 36, 64, 0.22);
+  --shadow-card: 0 28px 64px -28px rgba(27, 36, 64, 0.30);
+  --shadow-pop: 0 14px 30px -10px rgba(242, 121, 43, 0.55);
+
+  /* ========== MOTION ========== */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-default: 220ms;
+
+  /* ========== BREAKPOINTS ========== */
+  --breakpoint-sm: 560px;
+  --breakpoint-md: 680px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+
+/* ========== BASE STYLES — Light Theme ========== */
+body {
+  font-family: var(--font-body);
+  color: var(--color-ink-900);
+  background: var(--color-bg);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus visible styles */
+:focus-visible {
+  outline: 3px solid var(--color-coral-500);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Remove default focus for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ensure images don't overflow */
+img {
+  max-width: 100%;
+  height: auto;
+}

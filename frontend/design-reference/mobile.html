@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Coursely — Mobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="coursely-tokens.css" />
+<style>
+  body { background:
+    radial-gradient(120% 90% at 10% 0%, #FFF4EC 0%, transparent 55%),
+    radial-gradient(120% 90% at 100% 100%, #F1ECFB 0%, transparent 55%),
+    #F4EFEA;
+    min-height: 100vh; }
+  .board { max-width: 1280px; margin: 0 auto; padding: 56px 32px 80px; }
+  .rail { display: flex; gap: 56px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+  .phone-cap { text-align: center; margin-top: 22px; }
+  .phone-cap .n { font-family: var(--font-display); font-weight: 600; font-size: 18px; color: var(--c-ink-900); }
+  .phone-cap .d { font-size: 13.5px; color: var(--c-ink-500); font-weight: 600; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel">
+const W = 384, H = 812;
+const src = (s) => 'auth.html#' + s;
+
+function Phone({ screen, name, desc }) {
+  return (
+    <div>
+      <IOSDevice width={W} height={H}>
+        <div style={{height:'100%', paddingTop:52, boxSizing:'border-box'}}>
+          <iframe title={name} src={src(screen)}
+            style={{width:'100%', height:'100%', border:0, background:'var(--c-bg)'}} />
+        </div>
+      </IOSDevice>
+      <div className="phone-cap">
+        <div className="n">{name}</div>
+        <div className="d">{desc}</div>
+      </div>
+    </div>
+  );
+}
+
+function MobileApp() {
+  return (
+    <div className="board">
+      <div style={{textAlign:'center', marginBottom:48}}>
+        <div style={{fontFamily:'var(--font-mono)', fontSize:12, fontWeight:700, letterSpacing:'.05em', color:'var(--c-coral-700)', textTransform:'uppercase'}}>Coursely · Responsive</div>
+        <h1 style={{fontFamily:'var(--font-display)', fontWeight:600, fontSize:'clamp(30px,5vw,42px)', letterSpacing:'-.02em', margin:'8px 0 6px'}}>The same flow, on a phone</h1>
+        <p style={{color:'var(--c-ink-500)', fontWeight:600, fontSize:16, margin:'0 auto', maxWidth:560}}>
+          These are the live screens at 384&nbsp;px — fully interactive. The card goes near-full-width, the password checklist stacks to one column, and the app header collapses to wordmark + log out.
+        </p>
+      </div>
+      <div className="rail">
+        <Phone screen="signup" name="Sign up" desc="Live validation + checklist, single column" />
+        <Phone screen="signin" name="Sign in" desc="Show/hide toggle, demo login" />
+        <Phone screen="welcome" name="Welcome" desc="Collapsed header, stacked course cards" />
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<MobileApp />);
+</script>
+</body>
+</html>
