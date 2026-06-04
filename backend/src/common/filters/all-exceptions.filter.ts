@@ -60,8 +60,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
         title = (res.error as string) || exception.name || this.getStatusTitle(status)
         type = this.getErrorType(status)
 
+        // Handle FieldErrorException with pre-formatted errors array
+        if (Array.isArray(res.errors)) {
+          errors = res.errors as FieldError[]
+          detail = (res.message as string) || 'Validation failed'
+          title = this.getStatusTitle(status)
+          type = this.getErrorType(status)
+        }
         // Handle class-validator errors (array of messages)
-        if (Array.isArray(res.message)) {
+        else if (Array.isArray(res.message)) {
           errors = this.formatValidationErrors(res.message)
           detail = 'Validation failed'
           // Override status to 422 for validation errors

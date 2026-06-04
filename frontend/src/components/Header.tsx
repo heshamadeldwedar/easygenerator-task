@@ -1,26 +1,18 @@
-import { useNavigate } from 'react-router-dom'
 import { Wordmark } from './Wordmark'
-import { Button } from './Button'
-import { useAuth } from '@/context/AuthContext'
+import { AvatarDropdown } from './AvatarDropdown'
 
+/**
+ * Dashboard header with logo and user avatar dropdown.
+ * Logout is only accessible via the avatar dropdown menu.
+ */
 export function Header() {
-  const { logout } = useAuth()
-  const navigate = useNavigate()
-
-  const handleLogout = () => {
-    logout()
-    navigate('/signin')
-  }
-
   return (
-    <header className="flex items-center justify-between px-9 py-5 bg-surface border-b border-border max-md:px-[1.125rem] max-md:py-[0.875rem] max-md:gap-3">
+    <header className="flex items-center justify-between px-9 py-4 bg-surface border-b border-border max-md:px-5 max-md:py-3">
       <Wordmark />
       <nav className="max-md:hidden" aria-label="Main navigation">
         {/* Future navigation items can go here */}
       </nav>
-      <Button variant="secondary" size="sm" onClick={handleLogout}>
-        Log out
-      </Button>
+      <AvatarDropdown />
     </header>
   )
 }

@@ -1,4 +1,5 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { FieldErrorException } from '@/common/exceptions/field-error.exception'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
@@ -44,7 +45,7 @@ export class AuthService {
     // Check if user exists
     const existing = await this.usersService.findByEmail(dto.email)
     if (existing) {
-      throw new ConflictException('Email already registered')
+      throw FieldErrorException.conflict('email', 'Email already registered')
     }
 
     // Create user with default permissions

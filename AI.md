@@ -384,6 +384,90 @@ Claude applied the global API prefix consistently:
 - Kubernetes probes, load balancers, and Docker healthchecks expect a stable path
 - `/health` at root is the standard pattern for infrastructure probes
 
+### 2026-06-04 (Improvements Round 2)
+
+**Prompt**
+
+> Five UI/UX fixes: (1) bigger UI + more animated background shapes with reduced-motion support, (2) dashboard avatar dropdown for logout only, (3) single input state at a time + add missing success state, (4) generic backend-validation to field-error mapping, (5) active/focused state must match design reference.
+
+**Outcome**
+
+Claude implemented all five improvements:
+
+**1. Bigger UI + Animated Background Shapes**
+
+- Increased card max-width from `27.5rem` to `30rem` (480px), padding from `2.5rem` to `3rem`
+- Input height increased from `3.125rem` (50px) to `3.5rem` (56px)
+- Button height increased from `3.25rem` (52px) to `3.5rem` (56px)
+- 12 decorative shapes positioned close to the card: rings, circles, triangles, dot clusters, squares
+- Shapes use percentage-based positioning (e.g. `left-[15%]`, `right-[14%]`) to stay near the card
+- 5 continuous CSS animations:
+  - `float-slow` — 5s gentle vertical drift with slight rotation
+  - `float-gentle` — 4s multi-axis drift
+  - `drift` — 6s diamond-pattern movement
+  - `rotate-slow` — 12s full rotation
+  - `pulse-gentle` — 2.5s opacity/scale pulse
+- Each shape has staggered `animationDelay` (0s–2s) so they don't move in lockstep
+- **Accessibility:** `@media (prefers-reduced-motion: reduce)` disables all animations
+
+**2. Dashboard Avatar Dropdown**
+
+- Created `AvatarDropdown` component with person avatar icon (like GitHub's default)
+- Logout is **only** accessible via the dropdown menu (no standalone button)
+- Dropdown shows user avatar, name/email header + "Log out" action with icon
+- **Accessibility:**
+  - Button has `aria-haspopup="menu"` and `aria-expanded`
+  - Closes on Escape key and outside click
+  - Keyboard navigable with visible focus states
+- Mobile-friendly: dropdown anchored to avatar, doesn't overflow viewport
+
+**3. Single Input State + Success State**
+
+- Refactored `Input` to resolve to exactly ONE visual state using a precedence system:
+  - **Disabled** > **Active (focused)** > **Error** > **Valid** > **Default**
+- Key design principle from sates.html: **active state clears other states** — focusing a field shows only the focus ring, not error or success styling
+- Added `valid` prop to Input and PasswordInput
+- Created `check-circle.svg` icon for success indicator
+- State-specific styles:
+  - `default`: `border-border`, `hover:border-border-strong`
+  - `active`: `border-coral-500`, `shadow-[0_0_0_3px_var(--color-coral-100)]` (soft glow)
+  - `valid`: `border-[color-mix(in_srgb,var(--color-success)_55%,var(--color-border))]`
+  - `error`: `border-error`
+  - `disabled`: `bg-bg text-ink-300`
+- SignUp/SignIn forms now compute `isFieldValid()` and pass to inputs
+- Validation mode changed from `onChange` to `onBlur` — errors only appear after leaving a field, not while typing
+
+**4. Generic Backend-Validation → Field-Error Mapping**
+
+- **Backend:** Created `FieldErrorException` in `common/exceptions/` for field-level validation errors
+  - Accepts `errors: [{field, message}]` array, detail message, and HTTP status
+  - Factory methods: `FieldErrorException.conflict(field, message)` for 409, `.validation(errors)` for 422
+  - `AllExceptionsFilter` now detects `res.errors` array and passes it through to the response envelope
+  - Example: duplicate email returns `{ error: { errors: [{field: "email", message: "Email already registered"}] } }`
+
+- **Frontend:** Created `utils/formErrors.ts` with `mapApiErrorsToFields<T>()` helper
+  - Reads from envelope structure: `data.error.errors` (array of `{field, message}`)
+  - Handles:
+    - Any 4xx with errors array → maps each to `setError(field, ...)` if field is in the form
+    - 401 Unauthorized → "Invalid email or password"
+    - Network errors → "Please check your connection"
+    - Unknown errors → falls back to `error.detail` or generic message
+  - Returns `null` if errors were mapped to fields (no banner needed), or fallback string for form-level display
+
+- Wired into both SignUp and SignIn — single codepath for all server-side validation display
+
+**5. Active/Focused State Matches Reference**
+
+- Per `coursely-components.css` line 34: `.cl-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-100); }`
+- Translated to Tailwind: `border-coral-500 ring-4 ring-coral-100`
+- Active state applied exclusively when focused (not combined with error/valid)
+
+**Build Status**
+
+- `npm run build` succeeds
+- `docker compose build` succeeds
+- All changes verified against design reference
+
 ---
 
 ## Phase 5 — Finish

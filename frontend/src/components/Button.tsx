@@ -20,8 +20,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const sizeClasses =
       size === 'sm'
-        ? 'w-auto h-[2.625rem] px-[1.125rem] text-base rounded-[0.75rem]'
-        : 'h-[3.25rem] text-lg rounded-md'
+        ? 'w-auto h-11 px-5 text-base rounded-xl'
+        : 'h-14 text-lg rounded-md'
 
     const variantClasses =
       variant === 'primary'

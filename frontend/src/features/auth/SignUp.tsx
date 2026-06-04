@@ -7,11 +7,10 @@ import { Input, PasswordInput, PasswordChecklist, Button } from '@/components'
 import { signupSchema, type SignupFormData } from '@/schemas/auth'
 import { signup } from '@/api/auth'
 import { useAuth } from '@/context/AuthContext'
+import { mapApiErrorsToFields } from '@/utils/formErrors'
 import type { AxiosError } from 'axios'
 
-interface ApiError {
-  message?: string
-}
+const FORM_FIELDS = ['email', 'name', 'password'] as const
 
 export function SignUp() {
   const navigate = useNavigate()
@@ -22,10 +21,11 @@ export function SignUp() {
     register,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting },
+    setError,
+    formState: { errors, isSubmitting, dirtyFields, touchedFields },
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
-    mode: 'onChange', // Enable live validation for password checklist
+    mode: 'onBlur',
     defaultValues: {
       email: '',
       name: '',
@@ -34,6 +34,12 @@ export function SignUp() {
   })
 
   const password = watch('password', '')
+  const email = watch('email', '')
+  const name = watch('name', '')
+
+  // Field is valid when: touched, dirty, has value, and no error
+  const isFieldValid = (field: keyof SignupFormData, value: string) =>
+    touchedFields[field] && dirtyFields[field] && value.length > 0 && !errors[field]
 
   const onSubmit = async (data: SignupFormData) => {
     try {
@@ -42,19 +48,23 @@ export function SignUp() {
       login(response.user, response.accessToken)
       navigate('/dashboard')
     } catch (error) {
-      const axiosError = error as AxiosError<ApiError>
-      setServerError(
-        axiosError.response?.data?.message || 'Something went wrong. Please try again.'
+      const fallbackError = mapApiErrorsToFields(
+        error as AxiosError,
+        setError,
+        [...FORM_FIELDS]
       )
+      if (fallbackError) {
+        setServerError(fallbackError)
+      }
     }
   }
 
   return (
     <AuthLayout>
-      <h1 className="m-0 mb-1 font-display font-semibold text-h1 tracking-[-0.015em] leading-snug max-sm:text-[1.625rem]">
+      <h1 className="m-0 mb-2 font-display font-semibold text-h1 tracking-[-0.015em] leading-snug max-sm:text-[1.625rem]">
         Create your account
       </h1>
-      <p className="m-0 mb-[1.375rem] text-ink-500 text-base font-semibold">
+      <p className="m-0 mb-6 text-ink-500 text-base font-semibold">
         Start your learning journey today
       </p>
 
@@ -65,6 +75,7 @@ export function SignUp() {
           placeholder="you@example.com"
           autoComplete="email"
           error={errors.email?.message}
+          valid={isFieldValid('email', email)}
           {...register('email')}
         />
 
@@ -74,6 +85,7 @@ export function SignUp() {
           placeholder="Your full name"
           autoComplete="name"
           error={errors.name?.message}
+          valid={isFieldValid('name', name)}
           {...register('name')}
         />
 
@@ -82,23 +94,24 @@ export function SignUp() {
           placeholder="Create a password"
           autoComplete="new-password"
           error={errors.password?.message}
+          valid={isFieldValid('password', password)}
           {...register('password')}
         />
 
         <PasswordChecklist password={password} />
 
         {serverError && (
-          <p className="text-error text-sm font-bold mt-4" role="alert">
+          <p className="text-error text-sm font-bold mt-5" role="alert">
             {serverError}
           </p>
         )}
 
-        <Button type="submit" disabled={isSubmitting} className="mt-6">
+        <Button type="submit" disabled={isSubmitting} className="mt-8">
           {isSubmitting ? 'Creating account...' : 'Create account'}
         </Button>
       </form>
 
-      <p className="text-center mt-[1.125rem] text-sm text-ink-500 font-semibold">
+      <p className="text-center mt-5 text-sm text-ink-500 font-semibold">
         Already have an account?{' '}
         <Link
           to="/signin"

@@ -7,6 +7,8 @@ export interface PasswordInputProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label: string
   error?: string
+  /** Show success state when field is valid and not focused */
+  valid?: boolean
 }
 
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
@@ -22,9 +24,9 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="
-              h-[2.375rem] px-[0.625rem] border-0 bg-transparent cursor-pointer
-              text-ink-500 font-bold text-xs rounded-[0.5625rem]
-              inline-flex items-center gap-[0.3125rem]
+              h-10 px-3 border-0 bg-transparent cursor-pointer
+              text-ink-500 font-bold text-sm rounded-lg
+              inline-flex items-center gap-1.5
               hover:text-ink-900 hover:bg-bg
               transition-colors duration-default ease-default
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral-500

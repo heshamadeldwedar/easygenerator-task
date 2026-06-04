@@ -19,8 +19,8 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         <Wordmark />
       </div>
 
-      {/* Auth card */}
-      <Card className="relative z-10 w-full max-w-[27.5rem] p-10 max-sm:p-[1.375rem] max-sm:rounded-lg">
+      {/* Auth card — roomier sizing */}
+      <Card className="relative z-10 w-full max-w-120 p-12 max-sm:p-6 max-sm:rounded-lg">
         {children}
       </Card>
     </div>
