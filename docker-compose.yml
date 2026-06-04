@@ -1,0 +1,119 @@
+# =============================================================================
+# Docker Compose - Development Environment
+# =============================================================================
+#
+# Zero-friction dev setup: `docker compose up --build` starts everything.
+# No host npm install required - node_modules lives inside containers.
+#
+# Services:
+#   - mongo:    MongoDB database (port 27017)
+#   - backend:  NestJS API (port 3000, with hot reload)
+#   - frontend: Vite dev server (port 5173, with HMR)
+#
+# Network:
+#   All services share the 'coursely' network. Service-to-service calls use
+#   Docker service names (e.g., backend connects to 'mongo:27017').
+#   Browser-origin calls use host-published ports (e.g., frontend in browser
+#   calls 'localhost:3000' for the API).
+#
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # MongoDB
+  # ---------------------------------------------------------------------------
+  mongo:
+    image: mongo:7
+    container_name: coursely-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: coursely
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - coursely
+
+  # ---------------------------------------------------------------------------
+  # Backend (NestJS + Fastify)
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: coursely-backend
+    ports:
+      - "3000:3000"
+    volumes:
+      # Bind mount source for live editing
+      - ./backend:/app
+      # Anonymous volume: container's node_modules shadows host's
+      # This ensures native modules (bcrypt) are built for container's Linux
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      # Service-to-service: use Docker service name, not localhost
+      MONGO_URI: mongodb://mongo:27017/coursely
+      # JWT secrets (use secure values in production)
+      JWT_ACCESS_SECRET: dev-jwt-access-secret-min-32-chars
+      JWT_ACCESS_EXPIRY: 15m
+      REFRESH_TOKEN_EXPIRY: 7d
+      COOKIE_SECRET: dev-cookie-secret-minimum-32-chars
+      # CORS: allow frontend origin (browser-side)
+      CORS_ORIGIN: http://localhost:5173
+      BCRYPT_ROUNDS: 12
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - coursely
+
+  # ---------------------------------------------------------------------------
+  # Frontend (Vite + React)
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: coursely-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      # Bind mount source for live editing
+      - ./frontend:/app
+      # Anonymous volume: container's node_modules shadows host's
+      # This ensures esbuild/rollup are built for container's Linux
+      - /app/node_modules
+    environment:
+      # Browser-origin call: use host-published port, not Docker service name
+      # (requests originate in user's browser, outside Docker network)
+      VITE_API_BASE_URL: http://localhost:3000
+    networks:
+      - coursely
+
+# -----------------------------------------------------------------------------
+# Volumes
+# -----------------------------------------------------------------------------
+volumes:
+  mongo-data:
+    driver: local
+
+# -----------------------------------------------------------------------------
+# Networks
+# -----------------------------------------------------------------------------
+networks:
+  coursely:
+    driver: bridge

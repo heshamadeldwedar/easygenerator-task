@@ -5,6 +5,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { validate } from '@/config/env.validation'
 import { UsersModule } from '@/users/users.module'
 import { AuthModule } from '@/auth/auth.module'
+import { HealthModule } from '@/health/health.module'
 import { LoggingInterceptor } from '@/common/interceptors/logging.interceptor'
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
@@ -23,6 +24,7 @@ import { PermissionsGuard } from '@/common/guards/permissions.guard'
     }),
     UsersModule,
     AuthModule,
+    HealthModule,
   ],
   providers: [
     {

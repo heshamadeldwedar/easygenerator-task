@@ -278,7 +278,80 @@ The response envelope (`{ success, data, requestId }`) differs from what the fro
 
 ## Phase 3 — Dockerization
 
-*Coming soon...*
+### 2026-06-04
+
+**Prompt**
+
+> Wire the whole stack together to run locally with Docker Compose — frontend, backend, and MongoDB. Create dev Dockerfiles (with bind mounts and in-container node_modules) and production Dockerfiles (multi-stage, optimized). Only ship a dev compose file; production images run directly.
+
+**Outcome**
+
+Claude created the complete Docker infrastructure:
+
+**Dev vs Prod Dockerfile Split**
+
+Each app has two Dockerfiles:
+- `Dockerfile.dev` — Development with hot reload (NestJS `--watch`, Vite HMR)
+- `Dockerfile` — Production multi-stage build
+
+**In-Container node_modules Model**
+
+The dev setup uses a key pattern to avoid host/container architecture mismatches:
+
+```yaml
+volumes:
+  - ./backend:/app           # Bind mount for live editing
+  - /app/node_modules        # Anonymous volume shadows host's node_modules
+```
+
+**Why this matters:**
+- Native modules like **bcrypt** compile platform-specific binaries (Linux in container, macOS/Windows on host)
+- Vite's **esbuild/rollup** also have native binaries
+- With anonymous volume, `npm ci` runs inside the container, building native modules for Linux
+- Host source is live-mounted for editing, but container uses its own node_modules
+- Result: `docker compose up --build` works without any host `npm install`
+
+**Service-Name vs Host-Port Wiring**
+
+Docker networking requires different URLs for different contexts:
+- **Service-to-service** (backend → mongo): Use Docker service names (`mongodb://mongo:27017/coursely`)
+- **Browser-origin** (frontend-in-browser → backend): Use host-published ports (`http://localhost:3000`) since the browser is outside Docker
+
+This is configured in compose environment variables with comments explaining why.
+
+**Production Dockerfiles**
+
+**Backend:**
+- Stage 1: Install deps + `nest build`
+- Stage 2: `node:24-alpine`, production deps only (`npm ci --omit=dev`), copy dist
+- Runs as non-root user (`nestjs:nodejs`)
+- CMD: `node dist/main`
+
+**Frontend:**
+- Stage 1: Install deps + `vite build`
+- Stage 2: `nginx:alpine` serving static `/dist`
+- Custom `nginx.conf` with SPA history-API fallback (all routes → `index.html`)
+- Security headers, gzip, cache control for assets
+
+**No Production Compose**
+
+Production images are built/run directly without compose:
+```bash
+docker build -f backend/Dockerfile -t coursely-backend ./backend
+docker run -p 3000:3000 --env-file .env coursely-backend
+```
+
+This keeps the deployment model simple and explicit.
+
+**Additional Changes**
+
+- Added `/api/v1/health` endpoint (public, for compose healthcheck)
+- Backend healthcheck in compose uses `wget` to hit `/health`
+- MongoDB healthcheck with `mongosh --eval "db.adminCommand('ping')"`
+- Backend `depends_on: mongo` with `condition: service_healthy`
+- Created `.dockerignore` files excluding node_modules, dist, .env, tests, .git
+- Updated `.env.example` files with Docker-specific notes
+- Updated README with Docker architecture diagram, commands, and env var tables
 
 ---
 

@@ -1,0 +1,31 @@
+# =============================================================================
+# Development Dockerfile for NestJS Backend
+# =============================================================================
+#
+# DEV MODEL: Source is bind-mounted from the host for live editing, but
+# node_modules lives INSIDE the container (shadowed via anonymous volume in
+# compose). This avoids host/container OS-arch mismatches for native modules
+# like bcrypt. The user does NOT need a perfectly matching host npm install
+# for the container to run.
+#
+# Usage (via docker-compose.yml):
+#   docker compose up --build
+#
+# =============================================================================
+
+FROM node:24.16.0-alpine
+
+WORKDIR /app
+
+# Copy package files first for better layer caching
+COPY package*.json ./
+
+# Install ALL dependencies (including devDependencies for nest CLI)
+# Using npm ci for reproducible builds
+RUN npm ci
+
+# Port used by NestJS (Fastify)
+EXPOSE 3000
+
+# Start in watch mode for hot reload
+CMD ["npm", "run", "start:dev"]

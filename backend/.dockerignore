@@ -1,0 +1,47 @@
+# Dependencies - always install fresh in container
+node_modules
+
+# Build output - rebuild in container
+dist
+
+# Environment files - passed via compose/env vars
+.env
+.env.*
+!.env.example
+
+# Git
+.git
+.gitignore
+
+# Tests
+test
+**/*.spec.ts
+**/*.test.ts
+coverage
+jest.config.*
+
+# IDE/Editor
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker files (not needed in context)
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Documentation
+*.md
+!README.md
