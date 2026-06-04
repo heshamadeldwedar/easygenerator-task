@@ -189,7 +189,90 @@ Build verified: `npm run build` succeeds.
 
 ## Phase 2 — Backend
 
-*Coming soon...*
+### 2026-06-04
+
+**Prompt**
+
+> Build the NestJS backend auth API in /backend with Fastify adapter, MongoDB/Mongoose, JWT access tokens + rotating refresh tokens in httpOnly cookies, and PBAC. Follow the detailed spec including: response envelope, request ID tracing, validation mirroring frontend Zod schemas, and class-validator for env validation.
+
+**Outcome**
+
+Claude built the complete backend auth API:
+
+**Architecture Decisions**
+
+- **Fastify adapter** (not Express) — better performance, native async support, cleaner plugin system
+- **Response envelope pattern** — all responses wrapped in `{ success, data, requestId }` via global interceptor; errors wrapped in `{ success: false, error: {...}, requestId }` via global exception filter
+- **API versioning** — global prefix `/api/v{major}` read dynamically from package.json (e.g., `/api/v1/auth/signup`)
+- **Request tracing** — middleware honors inbound `X-Request-Id` or generates ULID; included in response body, header, and all log lines
+
+**Project Structure**
+
+```
+backend/
+├── src/
+│   ├── main.ts                  # Fastify bootstrap + plugins
+│   ├── app.module.ts            # Root module with global guards
+│   ├── config/
+│   │   └── env.validation.ts    # class-validator env schema
+│   ├── common/
+│   │   ├── middleware/          # request-id.middleware.ts
+│   │   ├── interceptors/        # response + logging
+│   │   ├── filters/             # all-exceptions.filter.ts
+│   │   ├── decorators/          # @CurrentUser, @RequirePermissions, @Public
+│   │   ├── guards/              # jwt-auth.guard.ts, permissions.guard.ts
+│   │   └── constants/           # permissions.ts (PBAC)
+│   ├── users/                   # User schema + service
+│   └── auth/                    # Controller, service, DTOs, JWT strategy
+└── test/                        # E2E tests (mongodb-memory-server)
+```
+
+**Authentication Model**
+
+- **Access token** — JWT signed with `JWT_ACCESS_SECRET`, 15m expiry, payload: `{ sub, email, permissions[] }`
+- **Refresh token** — opaque random string (64 hex chars), hashed with SHA-256 before storage, 7d expiry, delivered only via httpOnly cookie (`secure` in prod, `sameSite: lax`)
+- **Token rotation** — on `/auth/refresh`, old token revoked, new token issued in same family; if a revoked token is reused, entire family revoked (theft detection)
+
+**PBAC (Permission-Based Access Control)**
+
+- Permissions stored in JWT claim and user document
+- `@RequirePermissions('user:read:self')` decorator + `PermissionsGuard`
+- Default permission on signup: `user:read:self`
+- Single permission demonstrates the pattern; documented scaling path to CASL/ABAC for complex scenarios
+
+**Endpoints**
+
+| Endpoint | Method | Auth | Response |
+|----------|--------|------|----------|
+| `/api/v1/auth/signup` | POST | Public | 201 `{ user, accessToken }` + Set-Cookie |
+| `/api/v1/auth/signin` | POST | Public | 200 `{ user, accessToken }` + Set-Cookie |
+| `/api/v1/auth/refresh` | POST | Public | 200 `{ accessToken }` + rotated cookie |
+| `/api/v1/auth/logout` | POST | Public | 200 + clear cookie |
+| `/api/v1/auth/me` | GET | JWT + perm | 200 `{ user }` |
+
+**Security Decisions**
+
+- **No user enumeration** — signin returns generic "Invalid credentials" for both wrong email and wrong password
+- **Password hashing** — bcrypt with configurable rounds (default 12)
+- **Validation** — class-validator DTOs mirror frontend Zod schemas exactly (email, name min 3, password min 8 + letter + number + special char)
+- **Environment validation** — fails fast at boot if required vars missing or invalid
+
+**Technical Highlights**
+
+- Mongoose schemas with `toJSON` transform (drops `password`, `__v`; maps `_id` → `id`)
+- Pre-save hook for password hashing (only when modified)
+- TTL index on refresh tokens for auto-cleanup
+- Swagger UI at `/api/v1/docs` with full API documentation
+- Logging interceptor with method, URL, status, duration, requestId
+
+**Frontend Compatibility Note**
+
+The response envelope (`{ success, data, requestId }`) differs from what the frontend currently expects (`{ user, accessToken }`). Frontend will need updating in a future phase to unwrap `response.data.data` instead of `response.data`.
+
+**Build Status**
+
+- `npm run build` succeeds
+- E2E tests scaffolded with mongodb-memory-server (require test-time config adjustments to run)
 
 ---
 
