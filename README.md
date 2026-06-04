@@ -43,7 +43,7 @@ That's it! All dependencies install inside Docker containers.
 |----------|---------------------------------------|
 | Frontend | http://localhost:5173                 |
 | Backend  | http://localhost:3000                 |
-| Swagger  | http://localhost:3000/api/v1/docs     |
+| Swagger  | http://localhost:3000/api/docs        |
 | MongoDB  | localhost:27017                       |
 
 <details>
@@ -143,18 +143,18 @@ docker run -p 80:80 coursely-frontend
 <details>
 <summary><strong>API Endpoints</strong></summary>
 
-All endpoints are prefixed with `/api/v1`.
+Auth endpoints are prefixed with `/api/v1`. Health stays at root for infra probes.
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| `POST` | `/auth/signup` | Public | Register new user |
-| `POST` | `/auth/signin` | Public | Login user |
-| `POST` | `/auth/refresh` | Cookie | Rotate refresh token |
-| `POST` | `/auth/logout` | Public | Clear refresh cookie |
-| `GET` | `/auth/me` | JWT | Get current user |
-| `GET` | `/health` | Public | Health check |
+| `POST` | `/api/v1/auth/signup` | Public | Register new user |
+| `POST` | `/api/v1/auth/signin` | Public | Login user |
+| `POST` | `/api/v1/auth/refresh` | Cookie | Rotate refresh token |
+| `POST` | `/api/v1/auth/logout` | Public | Clear refresh cookie |
+| `GET` | `/api/v1/auth/me` | JWT | Get current user |
+| `GET` | `/health` | Public | Health check (root, no prefix) |
 
-See full API docs at http://localhost:3000/api/v1/docs (Swagger).
+See full API docs at http://localhost:3000/api/docs (Swagger).
 
 </details>
 

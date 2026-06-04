@@ -22,7 +22,9 @@ async function bootstrap() {
   // Extract major version from package.json for API prefix
   const majorVersion = packageJson.version.split('.')[0]
   const globalPrefix = `api/v${majorVersion}`
-  app.setGlobalPrefix(globalPrefix)
+  app.setGlobalPrefix(globalPrefix, {
+    exclude: ['health'], // Health stays at root for infra probes
+  })
 
   // Register Fastify plugins
   await app.register(fastifyHelmet, {
@@ -67,13 +69,13 @@ async function bootstrap() {
     .build()
 
   const document = SwaggerModule.createDocument(app, swaggerConfig)
-  SwaggerModule.setup(`${globalPrefix}/docs`, app, document)
+  SwaggerModule.setup('api/docs', app, document) // Docs at /api/docs, not under versioned prefix
 
   const port = config.get<number>('PORT') || 3000
   await app.listen(port, '0.0.0.0')
 
   logger.log(`Application is running on: http://localhost:${port}/${globalPrefix}`)
-  logger.log(`Swagger docs available at: http://localhost:${port}/${globalPrefix}/docs`)
+  logger.log(`Swagger docs available at: http://localhost:${port}/api/docs`)
 }
 
 bootstrap()

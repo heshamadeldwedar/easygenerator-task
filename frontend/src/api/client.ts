@@ -9,8 +9,10 @@ const AUTH_STORAGE_KEY = 'auth'
  * - Request interceptor: attach Bearer token + increment loading counter
  * - Response interceptor: decrement counter, handle 401 logout
  */
+const baseOrigin = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+
 export const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  baseURL: `${baseOrigin}/api/v1`, // API prefix defined once here
   headers: {
     'Content-Type': 'application/json',
   },

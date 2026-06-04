@@ -357,7 +357,32 @@ This keeps the deployment model simple and explicit.
 
 ## Phase 4 — Bonus & Hardening
 
-*Coming soon...*
+### 2026-06-04
+
+**Prompt**
+
+> Apply global `/api/v1` prefix via `setGlobalPrefix`, define it once on each side (backend and frontend). Keep `/health` at root outside the prefix. Update Swagger to `/api/docs`. Update docker-compose healthcheck.
+
+**Outcome**
+
+Claude applied the global API prefix consistently:
+
+**Backend (main.ts)**
+- Used `app.setGlobalPrefix('api/v1', { exclude: ['health'] })` to version all routes except health
+- Moved Swagger from `/api/v1/docs` to `/api/docs` — docs aren't versioned, just the API
+- Health stays at `/health` (root) for Docker healthchecks and infra probes
+
+**Frontend (client.ts)**
+- Set axios `baseURL` to `${origin}/api/v1` — prefix defined once
+- Removed `/api/v1` from individual API calls in `auth.ts` (now just `/auth/signup`, etc.)
+
+**Docker (docker-compose.yml)**
+- Updated backend healthcheck from `/api/v1/health` to `/health`
+
+**Design Decision: Health Outside Versioning**
+- Health endpoints shouldn't break when API versions change
+- Kubernetes probes, load balancers, and Docker healthchecks expect a stable path
+- `/health` at root is the standard pattern for infrastructure probes
 
 ---
 
