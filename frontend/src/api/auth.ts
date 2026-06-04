@@ -1,10 +1,10 @@
-import { client } from './client'
+import { client } from "./client";
 import type {
   AuthResponse,
   LoginCredentials,
   SignupCredentials,
   User,
-} from '@/types/auth'
+} from "@/types/auth";
 
 /**
  * Register a new user.
@@ -12,8 +12,11 @@ import type {
 export async function signup(
   credentials: SignupCredentials
 ): Promise<AuthResponse> {
-  const response = await client.post<AuthResponse>('/auth/signup', credentials)
-  return response.data
+  const response = await client.post<AuthResponse>(
+    "/api/v1/auth/signup",
+    credentials
+  );
+  return response.data;
 }
 
 /**
@@ -22,8 +25,11 @@ export async function signup(
 export async function signin(
   credentials: LoginCredentials
 ): Promise<AuthResponse> {
-  const response = await client.post<AuthResponse>('/auth/signin', credentials)
-  return response.data
+  const response = await client.post<AuthResponse>(
+    "/api/v1/auth/signin",
+    credentials
+  );
+  return response.data;
 }
 
 /**
@@ -31,6 +37,6 @@ export async function signin(
  * This is a protected endpoint that requires a valid token.
  */
 export async function getMe(): Promise<User> {
-  const response = await client.get<User>('/auth/me')
-  return response.data
+  const response = await client.get<User>("/api/v1/auth/me");
+  return response.data;
 }
