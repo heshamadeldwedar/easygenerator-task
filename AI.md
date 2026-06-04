@@ -102,6 +102,37 @@ Claude built the complete frontend auth module:
 - Responsive: mobile-first with breakpoints at 560px (sm) and 680px (md)
 - Build verified: `npm run build` and `npm run dev` both succeed
 
+### 2026-06-04 (Fix Pass)
+
+**Prompt**
+
+> PHASE 1 — fixes. The frontend is built but needs corrections. Work against the files in /frontend/design-reference/ as the source of truth. Fix: decorative geometric shapes, input/form states from sates.html, dead assets/tab title/favicon, and extract inline SVGs to assets with vite-plugin-svgr.
+
+**Outcome**
+
+Claude made the following corrections:
+
+**Design Fidelity**
+- Replaced simple blurred blobs with geometric shapes matching coursely-components.css
+- Added gradient blobs (coral, violet) and accent circles (teal, coral)
+- Added responsive scaling (0.7x on mobile via max-sm:scale-[0.7])
+
+**Input States**
+- Fixed focus state conflict: error inputs now keep red border on focus
+- Error focus ring uses error-bg (#FDECEC) instead of coral-100
+- Verified all states match coursely-components.css spec
+
+**Branding**
+- Renamed package.json name to "coursely"
+- Updated index.html title to "Coursely"
+- Created Coursely favicon (coral rounded square, white ring, teal dot)
+
+**SVG Extraction**
+- Installed vite-plugin-svgr for typed React component imports
+- Created src/assets/icons/ with error-circle.svg, eye.svg, eye-off.svg
+- Added TypeScript declaration for *.svg?react imports in env.d.ts
+- Updated Input.tsx and PasswordInput.tsx to import icons instead of inline SVGs
+
 ---
 
 ## Phase 2 — Backend
