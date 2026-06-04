@@ -35,7 +35,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
             focus:outline-none focus:ring-4
             disabled:bg-bg disabled:text-ink-300 disabled:cursor-not-allowed
             transition-[border-color,box-shadow] duration-default ease-default
-            ${error ? 'border-error focus:border-error focus:ring-error-bg' : 'focus:border-coral-500 focus:ring-coral-100'}
+            ${error ? '!border-error focus:ring-error-bg' : 'focus:border-coral-500 focus:ring-coral-100'}
             ${trailing ? 'pr-12' : ''}
             ${className}
           `}

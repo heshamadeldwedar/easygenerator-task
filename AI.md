@@ -155,6 +155,36 @@ Claude made the following corrections:
 
 **Status:** Diagnosis complete. Awaiting approval before implementing fixes.
 
+### 2026-06-04 (Fix Pass #2)
+
+**Prompt**
+
+> Implement the fixes for both diagnosed issues.
+
+**Outcome**
+
+**Issue 1 fix — AuthShapes.tsx rewritten with crisp geometric shapes:**
+- Coral semi-circle (top-left) using `clip-path: inset()`
+- Coral ring outline (top-left of center) using `border` + `rounded-full`
+- Rotated rounded-square outline (top-right) using `border` + `rotate(15deg)`
+- Small teal dot cluster (top-right) using nested flex containers
+- Teal ring (right side) using `border` + `rounded-full`
+- Small violet circle (right, below center)
+- Violet triangle (bottom-right) using inline SVG `<polygon>`
+- Coral dot cluster (bottom-left) using multiple `rounded-full` circles
+- Small teal circle (mid-left)
+- Small rotated square outline (bottom-left) using `border` + `rotate(-12deg)`
+- Coral quarter-circle (bottom-right corner) using `clip-path`
+- Teal semi-circle (bottom-left corner) using `clip-path`
+- All `blur-*` and gradient classes removed — shapes are now crisp
+
+**Issue 2 fix — Input.tsx error border now persists on focus:**
+- Changed from `border-error focus:border-error` to `!border-error` (important modifier)
+- The `!` ensures error border wins over `hover:border-border-strong` and any focus states
+- Focus ring still uses `focus:ring-error-bg` for light red ring on error
+
+Build verified: `npm run build` succeeds.
+
 ---
 
 ## Phase 2 — Backend
