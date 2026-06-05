@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Lint backend
+        run: npm run lint
+        working-directory: backend
+
+      - name: Build backend
+        run: npm run build
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Lint frontend
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend
+
+  test-backend:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Run unit tests
+        run: npm test
+        working-directory: backend
+
+      - name: Run e2e tests
+        run: npm run test:e2e
+        working-directory: backend
+        env:
+          MONGO_URI: mongodb://localhost:27017/test
+          JWT_ACCESS_SECRET: test-jwt-secret-at-least-32-chars
+          COOKIE_SECRET: test-cookie-secret-at-least-32-chars

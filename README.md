@@ -12,6 +12,7 @@ A full-stack sign-up / sign-in authentication module with React frontend and Nes
 - [API Endpoints](#api-endpoints)
 - [Project Structure](#project-structure)
 - [Testing](#testing)
+- [AI Assistance](#ai-assistance)
 
 ## Tech Stack
 
@@ -189,3 +190,7 @@ cd backend && npm test
 ```
 
 </details>
+
+## AI Assistance
+
+This project was developed with AI assistance. See [AI.md](AI.md) for a detailed log of the development journey, including prompts, decisions, and outcomes for each phase.
