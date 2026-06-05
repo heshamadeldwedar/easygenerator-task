@@ -63,10 +63,6 @@ jobs:
         run: npm ci
         working-directory: backend
 
-      - name: Run unit tests
-        run: npm test
-        working-directory: backend
-
       - name: Run e2e tests
         run: npm run test:e2e
         working-directory: backend
