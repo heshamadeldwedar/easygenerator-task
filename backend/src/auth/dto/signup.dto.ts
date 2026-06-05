@@ -28,7 +28,7 @@ export class SignupDto {
   @MinLength(8, { message: 'Password must be at least 8 characters' })
   @Matches(/[a-zA-Z]/, { message: 'Password must contain at least one letter' })
   @Matches(/\d/, { message: 'Password must contain at least one number' })
-  @Matches(/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;'`~]/, {
+  @Matches(/[!@#$%^&*(),.?":{}|<>_\-+=[\]\\;'`~]/, {
     message: 'Password must contain at least one special character',
   })
   password!: string

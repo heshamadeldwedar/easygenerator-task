@@ -16,7 +16,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "docker:lint": "docker exec coursely-backend npm run lint",
+    "docker:test": "docker exec coursely-backend npm test",
+    "docker:test:e2e": "docker exec coursely-backend npm run test:e2e",
+    "docker:install": "docker exec coursely-backend npm install"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
@@ -64,7 +68,8 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.60.1"
   },
   "jest": {
     "moduleFileExtensions": [
