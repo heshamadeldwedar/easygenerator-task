@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { HydratedDocument } from 'mongoose'
-import * as bcrypt from 'bcrypt'
 
 export type UserDocument = HydratedDocument<User>
 
@@ -41,24 +40,9 @@ export class User {
 
   @Prop({
     type: [String],
-    default: ['user:read:self'],
+    default: [],
   })
   permissions!: string[]
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)
-
-// Pre-save hook to hash password when modified
-UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
-    return next()
-  }
-
-  try {
-    const rounds = parseInt(process.env.BCRYPT_ROUNDS || '12', 10)
-    this.password = await bcrypt.hash(this.password, rounds)
-    next()
-  } catch (error) {
-    next(error as Error)
-  }
-})
