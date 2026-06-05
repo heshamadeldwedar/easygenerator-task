@@ -6,6 +6,7 @@ import {
 } from 'react'
 import type { User, AuthState } from '@/types/auth'
 import { AuthContext } from './authContext'
+import { logout as logoutApi } from '@/api/auth'
 
 /**
  * Auth storage key for localStorage.
@@ -53,7 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ user, accessToken, isAuthenticated: true })
   }, [])
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await logoutApi()
+    } catch {
+      // Continue with local cleanup even if API call fails
+    }
     localStorage.removeItem(AUTH_STORAGE_KEY)
     setState({ user: null, accessToken: null, isAuthenticated: false })
   }, [])

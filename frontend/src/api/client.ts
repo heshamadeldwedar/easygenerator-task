@@ -44,20 +44,42 @@ client.interceptors.request.use(
   }
 )
 
-// Response interceptor: decrement loading + handle 401
+// Response interceptor: decrement loading + handle 401 with token refresh
 client.interceptors.response.use(
   (response) => {
     decrementLoading()
     return response
   },
-  (error) => {
+  async (error) => {
     decrementLoading()
 
-    // On 401 Unauthorized, clear auth and redirect to signin
-    if (error.response?.status === 401) {
-      localStorage.removeItem(AUTH_STORAGE_KEY)
-      // Use window.location for hard redirect to clear React state
-      window.location.href = '/signin'
+    const originalRequest = error.config
+
+    // On 401, try to refresh the token once before logging out
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true
+
+      try {
+        // Call refresh endpoint (reads httpOnly cookie automatically)
+        const response = await client.post<{ accessToken: string }>('/auth/refresh')
+        const { accessToken } = response.data
+
+        // Update stored token
+        const stored = localStorage.getItem(AUTH_STORAGE_KEY)
+        if (stored) {
+          const auth = JSON.parse(stored)
+          auth.accessToken = accessToken
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(auth))
+        }
+
+        // Retry original request with new token
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`
+        return client(originalRequest)
+      } catch {
+        // Refresh failed, clear auth and redirect to signin
+        localStorage.removeItem(AUTH_STORAGE_KEY)
+        window.location.href = '/signin'
+      }
     }
 
     return Promise.reject(error)

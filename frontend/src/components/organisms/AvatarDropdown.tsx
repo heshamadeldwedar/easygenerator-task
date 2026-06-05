@@ -20,9 +20,9 @@ export function AvatarDropdown() {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
     setIsOpen(false)
-    logout()
+    await logout()
     navigate('/signin')
   }, [logout, navigate])
 

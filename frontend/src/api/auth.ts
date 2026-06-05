@@ -40,3 +40,20 @@ export async function getMe(): Promise<User> {
   const response = await client.get<User>("/auth/me");
   return response.data;
 }
+
+/**
+ * Refresh access token using httpOnly refresh_token cookie.
+ * The backend reads the cookie automatically.
+ */
+export async function refresh(): Promise<{ accessToken: string }> {
+  const response = await client.post<{ accessToken: string }>("/auth/refresh");
+  return response.data;
+}
+
+/**
+ * Logout and revoke refresh token.
+ * The backend reads the cookie and marks the token as revoked.
+ */
+export async function logout(): Promise<void> {
+  await client.post("/auth/logout");
+}
