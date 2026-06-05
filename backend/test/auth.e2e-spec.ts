@@ -346,14 +346,16 @@ describe('AuthController (e2e)', () => {
       expect(newRefreshCookie!.value).not.toBe(refreshToken)
     })
 
-    it('should reject without refresh token (500)', async () => {
+    it('should reject without refresh token (401)', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/auth/refresh',
       })
 
-      // Will throw an error since no token provided
-      expect(response.statusCode).toBe(500)
+      expect(response.statusCode).toBe(401)
+      const body = JSON.parse(response.body)
+      expect(body.success).toBe(false)
+      expect(body.error.detail).toBe('No refresh token provided')
     })
   })
 
