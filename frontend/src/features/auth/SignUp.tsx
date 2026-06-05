@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
 import { AuthLayout } from './AuthLayout'
 import { Input, PasswordInput, PasswordChecklist, Button } from '@/components'
 import { signupSchema, type SignupFormData } from '@/schemas/auth'
 import { signup } from '@/api/auth'
-import { useAuth } from '@/context/AuthContext'
+import { useAuth } from '@/context/useAuth'
 import { mapApiErrorsToFields } from '@/utils/formErrors'
 import type { AxiosError } from 'axios'
 
@@ -20,7 +20,7 @@ export function SignUp() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setError,
     formState: { errors, isSubmitting, dirtyFields, touchedFields },
   } = useForm<SignupFormData>({
@@ -33,9 +33,9 @@ export function SignUp() {
     },
   })
 
-  const password = watch('password', '')
-  const email = watch('email', '')
-  const name = watch('name', '')
+  const password = useWatch({ control, name: 'password', defaultValue: '' })
+  const email = useWatch({ control, name: 'email', defaultValue: '' })
+  const name = useWatch({ control, name: 'name', defaultValue: '' })
 
   // Field is valid when: touched, dirty, has value, and no error
   const isFieldValid = (field: keyof SignupFormData, value: string) =>

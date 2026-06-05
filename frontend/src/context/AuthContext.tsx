@@ -1,12 +1,11 @@
 import {
-  createContext,
-  useContext,
   useState,
   useCallback,
   useMemo,
   type ReactNode,
 } from 'react'
 import type { User, AuthState } from '@/types/auth'
+import { AuthContext } from './authContext'
 
 /**
  * Auth storage key for localStorage.
@@ -16,13 +15,6 @@ import type { User, AuthState } from '@/types/auth'
  * alternative since JavaScript cannot access them.
  */
 const AUTH_STORAGE_KEY = 'auth'
-
-interface AuthContextValue extends AuthState {
-  login: (user: User, accessToken: string) => void
-  logout: () => void
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null)
 
 interface StoredAuth {
   user: User | null
@@ -73,16 +65,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-/**
- * Hook to access auth state and actions.
- * Must be used within an AuthProvider.
- */
-export function useAuth(): AuthContextValue {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
 }

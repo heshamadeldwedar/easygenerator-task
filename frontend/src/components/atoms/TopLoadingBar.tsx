@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useSyncExternalStore } from 'react'
+import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from 'react'
 import { subscribe, getSnapshot, getLoadingCount } from '@/stores/loadingStore'
 
 /**
@@ -28,6 +28,51 @@ export function TopLoadingBar() {
   const hideTimeoutRef = useRef<number | null>(null)
   const visibleSinceRef = useRef<number | null>(null)
   const animationFrameRef = useRef<number | null>(null)
+
+  /**
+   * Animate progress from current value toward ~90%.
+   * Slows down as it approaches 90% for a natural feel.
+   */
+  const startProgressAnimation = useCallback(() => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current)
+    }
+
+    const tick = () => {
+      setProgress((prev) => {
+        if (prev >= 90) return prev
+        // Slow down as we approach 90%
+        const increment = (90 - prev) * 0.03
+        return Math.min(90, prev + Math.max(0.5, increment))
+      })
+
+      // Continue animation while requests are in flight
+      if (getLoadingCount() > 0) {
+        animationFrameRef.current = requestAnimationFrame(tick)
+      }
+    }
+
+    animationFrameRef.current = requestAnimationFrame(tick)
+  }, [])
+
+  /**
+   * Complete the progress bar and schedule hide.
+   */
+  const completeProgress = useCallback(() => {
+    setProgress(100)
+
+    // Calculate remaining minimum visible time
+    const visibleFor = Date.now() - (visibleSinceRef.current || 0)
+    const remaining = Math.max(0, MIN_VISIBLE_TIME - visibleFor)
+
+    // Hide after completion animation + remaining minimum time
+    hideTimeoutRef.current = window.setTimeout(() => {
+      setIsVisible(false)
+      setProgress(0)
+      visibleSinceRef.current = null
+      hideTimeoutRef.current = null
+    }, remaining + 200) // +200ms for completion animation
+  }, [])
 
   useEffect(() => {
     const hasRequests = loadingCount > 0
@@ -65,20 +110,8 @@ export function TopLoadingBar() {
       }
 
       if (isVisible) {
-        // Complete the progress bar
-        setProgress(100)
-
-        // Calculate remaining minimum visible time
-        const visibleFor = Date.now() - (visibleSinceRef.current || 0)
-        const remaining = Math.max(0, MIN_VISIBLE_TIME - visibleFor)
-
-        // Hide after completion animation + remaining minimum time
-        hideTimeoutRef.current = window.setTimeout(() => {
-          setIsVisible(false)
-          setProgress(0)
-          visibleSinceRef.current = null
-          hideTimeoutRef.current = null
-        }, remaining + 200) // +200ms for completion animation
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: completeProgress schedules hide via setTimeout
+        completeProgress()
       }
     }
 
@@ -86,7 +119,7 @@ export function TopLoadingBar() {
       // Cleanup only the animation frame on effect re-run
       // Don't cleanup timeouts here as they handle the hide sequence
     }
-  }, [loadingCount, isVisible])
+  }, [loadingCount, isVisible, startProgressAnimation, completeProgress])
 
   // Cleanup all on unmount
   useEffect(() => {
@@ -96,32 +129,6 @@ export function TopLoadingBar() {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
     }
   }, [])
-
-  /**
-   * Animate progress from current value toward ~90%.
-   * Slows down as it approaches 90% for a natural feel.
-   */
-  function startProgressAnimation() {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current)
-    }
-
-    const tick = () => {
-      setProgress((prev) => {
-        if (prev >= 90) return prev
-        // Slow down as we approach 90%
-        const increment = (90 - prev) * 0.03
-        return Math.min(90, prev + Math.max(0.5, increment))
-      })
-
-      // Continue animation while requests are in flight
-      if (getLoadingCount() > 0) {
-        animationFrameRef.current = requestAnimationFrame(tick)
-      }
-    }
-
-    animationFrameRef.current = requestAnimationFrame(tick)
-  }
 
   if (!isVisible) return null
 

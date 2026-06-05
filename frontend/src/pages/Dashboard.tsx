@@ -1,5 +1,5 @@
 import { Header } from '@/components'
-import { useAuth } from '@/context/AuthContext'
+import { useAuth } from '@/context/useAuth'
 
 /**
  * Protected welcome/dashboard page.

@@ -22,7 +22,7 @@ export const passwordSchema = z
   .regex(/[a-zA-Z]/, 'Password must contain at least one letter')
   .regex(/\d/, 'Password must contain at least one number')
   .regex(
-    /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;'`~]/,
+    /[!@#$%^&*(),.?":{}|<>_\-+=[\]\\;'`~]/,
     'Password must contain at least one special character'
   )
 
@@ -50,6 +50,6 @@ export const passwordRequirements = [
   {
     id: 'special',
     label: 'One special char',
-    test: (p: string) => /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;'`~]/.test(p),
+    test: (p: string) => /[!@#$%^&*(),.?":{}|<>_\-+=[\]\\;'`~]/.test(p),
   },
 ] as const
