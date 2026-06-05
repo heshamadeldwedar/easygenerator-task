@@ -1,4 +1,4 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { MongooseModule } from '@nestjs/mongoose'
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
@@ -41,8 +41,4 @@ import { PermissionsGuard } from '@/common/guards/permissions.guard'
     },
   ],
 })
-export class AppModule implements NestModule {
-  configure(_consumer: MiddlewareConsumer) {
-    // Request ID middleware is applied in main.ts via Fastify
-  }
-}
+export class AppModule {}
