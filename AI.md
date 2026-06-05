@@ -547,6 +547,24 @@ users/
 - Lint: Passed
 - E2E Tests: 15/15 passed
 
+### 2026-06-05 (Atomic-Design Review Rules)
+
+**Prompt**
+
+> Add atomic-design conventions to the code review skill.
+
+**Outcome**
+
+Added an "Atomic Design (React)" subsection to the existing `co-code-review` skill. The section covers:
+- Tier placement rules (atoms, molecules, organisms, layouts)
+- Import direction constraints (dependencies flow upward only)
+- Single responsibility for lower tiers (presentational, no feature logic)
+- No duplication across tiers
+- Hybrid boundary between shared UI and feature folders
+- Consistency with design tokens and naming conventions
+
+The skill already existed — appended the new section under the React + Vite + Tailwind stack rules without modifying existing review rules.
+
 ---
 
 ## Phase 5 — Finish

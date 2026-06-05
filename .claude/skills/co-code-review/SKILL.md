@@ -108,6 +108,30 @@ Score each finding under one of these four. Every finding needs: **file:line →
 - **Accessibility basics:** semantic elements, labels on inputs, keyboard focus not broken.
 - **TypeScript:** typed props, no `any`, discriminated unions for variant props.
 
+#### Atomic Design (React)
+
+When reviewing frontend React code, check adherence to the project's atomic-design structure:
+
+- **Tier placement**: Components live in the correct tier:
+  - `atoms/` — primitives (Button, Input, Label, Icon, Avatar)
+  - `molecules/` — small compositions (FormField, PasswordChecklist, MenuItem)
+  - `organisms/` — composed sections (forms, AppHeader, AccountMenu)
+  - `layouts/` — page-level scaffolds
+
+  Flag a component in the wrong tier (e.g., a composed form in atoms).
+
+- **Import direction**: Dependencies only flow **upward**. Atoms must not import molecules/organisms/layouts; molecules must not import organisms/layouts. Flag any downward or lateral import that breaks the hierarchy, and flag circular imports.
+
+- **Single responsibility / dumb lower tiers**: Atoms and molecules stay presentational and reusable — no feature-specific logic, no data fetching, no auth/business logic baked in. Feature logic belongs in `features/`, not in shared UI tiers.
+
+- **No duplication across tiers**: Flag reimplemented primitives (e.g., a one-off styled input inside an organism instead of reusing the Input atom / FormField molecule).
+
+- **Hybrid boundary**: Shared, reusable UI goes in atomic tiers; feature-bound composition stays under the feature folder. Flag shared primitives buried inside a feature, or feature logic leaking into shared tiers.
+
+- **Consistency**: Components use design tokens / Tailwind theme rather than hardcoded values; new components follow established tier + naming conventions.
+
+When flagging, name the specific tier-rule violated and suggest the correct placement/fix.
+
 ### If generic / other stack
 
 Apply the four dimensions plus: SOLID, DRY, clear module boundaries, no magic values, explicit error handling.
