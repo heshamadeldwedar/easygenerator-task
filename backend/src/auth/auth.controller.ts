@@ -1,4 +1,14 @@
-import { Controller, Post, Get, Body, Req, Res, HttpCode, HttpStatus } from '@nestjs/common'
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Req,
+  Res,
+  HttpCode,
+  HttpStatus,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { FastifyRequest, FastifyReply } from 'fastify'
 import {
@@ -16,6 +26,7 @@ import { Public } from '@/common/decorators/public.decorator'
 import { CurrentUser, CurrentUserPayload } from '@/common/decorators/current-user.decorator'
 import { RequirePermissions } from '@/common/decorators/require-permissions.decorator'
 import { Permissions } from '@/common/constants/permissions'
+import { REFRESH_COOKIE_MAX_AGE_SECONDS } from '@/common/constants/auth.constants'
 
 @ApiTags('auth')
 @Controller('auth')
@@ -103,7 +114,7 @@ export class AuthController {
     const oldToken = request.cookies?.refresh_token
     if (!oldToken) {
       this.clearRefreshCookie(response)
-      throw new Error('No refresh token provided')
+      throw new UnauthorizedException('No refresh token provided')
     }
 
     try {
@@ -152,14 +163,12 @@ export class AuthController {
 
   private setRefreshCookie(response: FastifyReply, token: string) {
     const isProduction = this.configService.get('NODE_ENV') === 'production'
-    const maxAge = 7 * 24 * 60 * 60 // 7 days in seconds
-
     response.setCookie('refresh_token', token, {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'lax',
       path: '/',
-      maxAge,
+      maxAge: REFRESH_COOKIE_MAX_AGE_SECONDS,
     })
   }
 

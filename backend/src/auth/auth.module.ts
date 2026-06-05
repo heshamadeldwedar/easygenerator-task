@@ -20,7 +20,7 @@ import { RefreshToken, RefreshTokenSchema } from './schemas/refresh-token.schema
         if (!secret) {
           throw new Error('JWT_ACCESS_SECRET is not defined')
         }
-        const expiresIn = config.get<string>('JWT_ACCESS_EXPIRY') || '15m'
+        const expiresIn = config.getOrThrow<string>('JWT_ACCESS_EXPIRY')
         return {
           secret,
           signOptions: {

@@ -14,6 +14,7 @@ import { SignupDto } from './dto/signup.dto'
 import { SigninDto } from './dto/signin.dto'
 import { JwtPayload } from './types/jwt-payload.type'
 import { DEFAULT_USER_PERMISSIONS } from '@/common/constants/permissions'
+import { REFRESH_TOKEN_BYTES, REFRESH_COOKIE_MAX_AGE_MS } from '@/common/constants/auth.constants'
 
 export interface UserDto {
   id: string
@@ -153,12 +154,12 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload)
 
     // Generate opaque refresh token
-    const refreshToken = crypto.randomBytes(32).toString('hex')
+    const refreshToken = crypto.randomBytes(REFRESH_TOKEN_BYTES).toString('hex')
     const tokenHash = this.hashToken(refreshToken)
     const tokenFamily = family || ulid()
 
     // Calculate expiry
-    const expiryStr = this.configService.get<string>('REFRESH_TOKEN_EXPIRY') || '7d'
+    const expiryStr = this.configService.getOrThrow<string>('REFRESH_TOKEN_EXPIRY')
     const expiryMs = this.parseExpiry(expiryStr)
     const expiresAt = new Date(Date.now() + expiryMs)
 
@@ -189,7 +190,7 @@ export class AuthService {
   private parseExpiry(expiry: string): number {
     const match = expiry.match(/^(\d+)([smhd])$/)
     if (!match) {
-      return 7 * 24 * 60 * 60 * 1000 // Default 7 days
+      return REFRESH_COOKIE_MAX_AGE_MS
     }
 
     const value = parseInt(match[1], 10)
