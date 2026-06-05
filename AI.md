@@ -565,6 +565,48 @@ Added an "Atomic Design (React)" subsection to the existing `co-code-review` ski
 
 The skill already existed — appended the new section under the React + Vite + Tailwind stack rules without modifying existing review rules.
 
+### 2026-06-05 (Atomic-Design Refactor)
+
+**Prompt**
+
+> Refactor frontend components to follow atomic design structure.
+
+**Outcome**
+
+Reorganized `frontend/src/components/` from a flat structure into atomic design tiers:
+
+**New Structure**
+```
+components/
+├── atoms/           # Primitives
+│   ├── AuthShapes.tsx
+│   ├── Button.tsx
+│   ├── Card.tsx
+│   ├── Input.tsx
+│   ├── TopLoadingBar.tsx
+│   ├── Wordmark.tsx
+│   └── index.ts
+├── molecules/       # Small compositions
+│   ├── PasswordChecklist.tsx
+│   ├── PasswordInput.tsx
+│   └── index.ts
+├── organisms/       # Composed sections
+│   ├── AvatarDropdown.tsx
+│   ├── Header.tsx
+│   └── index.ts
+└── index.ts         # Re-exports all tiers
+```
+
+**Changes Made**
+- Created `atoms/`, `molecules/`, `organisms/` directories
+- Moved 6 components to atoms, 2 to molecules, 2 to organisms
+- Updated internal imports (PasswordInput → atoms/Input, Header → atoms/Wordmark)
+- Created barrel exports for each tier
+- Main `index.ts` re-exports all components — consuming code unchanged
+
+**Verification**
+- Build: Passed
+
 ---
 
 ## Phase 5 — Finish

@@ -1,10 +1,24 @@
-export { AvatarDropdown } from './AvatarDropdown'
-export { Button, type ButtonProps } from './Button'
-export { Card, type CardProps } from './Card'
-export { Input, type InputProps } from './Input'
-export { PasswordInput, type PasswordInputProps } from './PasswordInput'
-export { PasswordChecklist, type PasswordChecklistProps } from './PasswordChecklist'
-export { Header } from './Header'
-export { Wordmark, type WordmarkProps } from './Wordmark'
-export { AuthShapes } from './AuthShapes'
-export { TopLoadingBar } from './TopLoadingBar'
+// Atoms - primitive UI components
+export {
+  AuthShapes,
+  Button,
+  type ButtonProps,
+  Card,
+  type CardProps,
+  Input,
+  type InputProps,
+  TopLoadingBar,
+  Wordmark,
+  type WordmarkProps,
+} from './atoms'
+
+// Molecules - small compositions of atoms
+export {
+  PasswordChecklist,
+  type PasswordChecklistProps,
+  PasswordInput,
+  type PasswordInputProps,
+} from './molecules'
+
+// Organisms - composed sections
+export { AvatarDropdown, Header } from './organisms'

@@ -1,5 +1,5 @@
 import { forwardRef, useState, type InputHTMLAttributes } from 'react'
-import { Input } from './Input'
+import { Input } from '../atoms/Input'
 import EyeIcon from '@/assets/icons/eye.svg?react'
 import EyeOffIcon from '@/assets/icons/eye-off.svg?react'
 

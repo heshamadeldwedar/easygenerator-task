@@ -1,4 +1,4 @@
-import { Wordmark } from './Wordmark'
+import { Wordmark } from '../atoms/Wordmark'
 import { AvatarDropdown } from './AvatarDropdown'
 
 /**
