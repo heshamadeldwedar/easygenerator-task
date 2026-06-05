@@ -56,6 +56,8 @@ services:
       # Anonymous volume: container's node_modules shadows host's
       # This ensures native modules (bcrypt) are built for container's Linux
       - /app/node_modules
+      # Mount changelog for the /api/v1/changelog endpoint
+      - ./backend/CHANGELOG.md:/app/CHANGELOG.md:ro
     environment:
       NODE_ENV: development
       PORT: 3000
@@ -97,6 +99,8 @@ services:
       # Anonymous volume: container's node_modules shadows host's
       # This ensures esbuild/rollup are built for container's Linux
       - /app/node_modules
+      # Mount changelog for static serving
+      - ./frontend/CHANGELOG.md:/app/public/CHANGELOG.md:ro
     environment:
       # Browser-origin call: use host-published port, not Docker service name
       # (requests originate in user's browser, outside Docker network)

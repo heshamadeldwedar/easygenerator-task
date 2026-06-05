@@ -27,6 +27,9 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Copy CHANGELOG.md to public directory (glob pattern makes it optional)
+COPY CHANGELOG.m[d] ./public/
+
 # Build argument for API URL (must be set at build time for Vite)
 ARG VITE_API_BASE_URL=http://localhost:3000
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL

@@ -10,7 +10,7 @@ This project follows a 6-phase plan. Here's how we're building this auth module,
 - **Phase 1** — Frontend: Vite + React + TypeScript, routing, forms, pages
 - **Phase 2** — Backend: NestJS + MongoDB, auth endpoints, JWT
 - **Phase 3** — Dockerization: Dockerfiles + docker-compose
-- **Phase 4** — Bonus: logging, tests, Swagger, CI
+- **Phase 4** — Improvement: UI/UX polish, code review, refactoring
 - **Phase 5** — Finish: polish, finalize docs, push to GitHub
 
 Each phase below tells its story — what I asked, what Claude did, and what I changed.
@@ -355,7 +355,7 @@ This keeps the deployment model simple and explicit.
 
 ---
 
-## Phase 4 — Bonus & Hardening
+## Phase 4 — Improvement
 
 ### 2026-06-04
 
@@ -551,4 +551,57 @@ users/
 
 ## Phase 5 — Finish
 
-*Coming soon...*
+### 2026-06-05 (Changelog Serving)
+
+**Prompt**
+
+> Serve each package's CHANGELOG.md from its own server: backend via API endpoint, frontend as a static asset via nginx.
+
+**Outcome**
+
+Claude implemented changelog serving for both packages:
+
+**Backend Changelog Endpoint**
+
+- Created `changelog/` module with service, controller, and module files
+- `GET /api/v1/changelog` — public endpoint (no auth) returning `{ success, data: { content }, requestId }`
+- Optional `?format=raw` query returns plain markdown with `Content-Type: text/markdown`
+- File read from `process.cwd()/CHANGELOG.md` — works in both dev and container
+- In-memory caching after first read (no repeated disk I/O)
+- Graceful fallback: returns placeholder if file missing (no crash)
+- Swagger documented with `@ApiTags`, `@ApiOperation`, `@ApiQuery`, `@ApiResponse`
+- Updated `Dockerfile` to copy `CHANGELOG.md` into runtime stage (glob pattern makes it optional)
+
+**Frontend Static Changelog**
+
+- Updated `nginx.conf` with `.md` location block before SPA fallback
+- Added `text/markdown` to gzip types for compression
+- `.md` files served with `Content-Type: text/markdown; charset=utf-8`
+- SPA fallback no longer hijacks `/CHANGELOG.md` — returns actual file or 404
+- Updated `Dockerfile` to copy `CHANGELOG.md` to `public/` before build
+
+**Docker Compose for Dev**
+
+- Added volume mounts for both packages:
+  - Backend: `./backend/CHANGELOG.md:/app/CHANGELOG.md:ro`
+  - Frontend: `./frontend/CHANGELOG.md:/app/public/CHANGELOG.md:ro`
+
+**Placeholder Files**
+
+- Created `backend/CHANGELOG.md` and `frontend/CHANGELOG.md` placeholders
+- Will be replaced by release-please when versioning is set up
+
+**Files Created**
+- `backend/src/changelog/changelog.service.ts`
+- `backend/src/changelog/changelog.controller.ts`
+- `backend/src/changelog/changelog.module.ts`
+- `backend/CHANGELOG.md`
+- `frontend/CHANGELOG.md`
+
+**Files Modified**
+- `backend/src/app.module.ts` — imported ChangelogModule
+- `backend/Dockerfile` — copy CHANGELOG.md to runtime stage
+- `frontend/nginx.conf` — .md location block + gzip type
+- `frontend/Dockerfile` — copy CHANGELOG.md to public/
+- `docker-compose.yml` — volume mounts for dev
+- `.claude/state/current-phase` — updated to 5

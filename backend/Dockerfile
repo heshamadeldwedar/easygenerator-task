@@ -47,6 +47,9 @@ RUN npm ci --omit=dev && npm cache clean --force
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
 
+# Copy CHANGELOG.md for the changelog endpoint (glob pattern makes it optional)
+COPY --from=builder /app/CHANGELOG.m[d] ./
+
 # Switch to non-root user
 USER nestjs
 

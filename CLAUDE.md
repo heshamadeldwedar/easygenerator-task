@@ -8,7 +8,7 @@ This project follows 6 phases:
 - **Phase 1** — Frontend: Vite + React + TypeScript
 - **Phase 2** — Backend: NestJS + MongoDB
 - **Phase 3** — Dockerization
-- **Phase 4** — Bonus: tests, logging, Swagger, CI
+- **Phase 4** — Improvement: UI/UX polish, code review, refactoring
 - **Phase 5** — Finish: polish and push to GitHub
 
 Current phase is tracked in `.claude/state/current-phase`.
