@@ -468,6 +468,85 @@ Claude implemented all five improvements:
 - `docker compose build` succeeds
 - All changes verified against design reference
 
+### 2026-06-05 (Co-Code-Review Skill + Backend Refactoring)
+
+**Prompt**
+
+> Create a collaborative code review skill called `co-code-review`. Make it interactive like pairing with a senior engineer. Then use it to review the backend auth folder and fix all findings.
+
+**Outcome**
+
+**Created Co-Code-Review Skill**
+
+Built `.claude/skills/co-code-review/SKILL.md` with:
+- Intake workflow: asks review type (full vs changes-only) and scope before starting
+- Auto-detects stack from package.json
+- Four review dimensions: Code Quality, Performance, Security, Consistency
+- Stack-specific rules for NestJS and React+Vite+Tailwind
+- Finding format with severity levels (BLOCKER/MAJOR/MINOR/NIT)
+- Interactive workflow: present findings in batches, let user decide what to fix
+
+**Full Backend Code Review**
+
+Reviewed 27 files across auth, users, common, config, and health modules.
+
+**Findings Summary:**
+- 1 BLOCKER: `process.env` in user.schema.ts pre-save hook (should use ConfigService)
+- 2 MAJOR: Raw `Error` throw instead of `UnauthorizedException`, duplicate default permission
+- 6 MINOR: Magic values scattered across files
+- 2 NIT: Dead code (`findByIdWithPassword`), unused `NestModule` implementation
+
+**Fixes Applied**
+
+1. **Repository Pattern for Users Module**
+   - Created `users/users.repository.ts` — encapsulates all Mongoose model access
+   - Created `users/types/user.types.ts` — `CreateUserData` and `CreateUserDto` interfaces
+   - Refactored `users.service.ts` to inject repository instead of model directly
+   - Updated `users.module.ts` to register repository as provider
+
+2. **Moved Password Hashing to Service Layer**
+   - Removed pre-save hook from `user.schema.ts` (was using `process.env`)
+   - Hashing now happens in `UsersService.create()` with ConfigService
+
+3. **Fixed Error Handling**
+   - Changed `throw new Error()` to `throw new UnauthorizedException()` in refresh endpoint
+   - Updated e2e test to expect 401 instead of 500
+
+4. **Extracted Magic Values to Constants**
+   - Created `common/constants/auth.constants.ts` with `REFRESH_TOKEN_BYTES`, `REFRESH_COOKIE_MAX_AGE_SECONDS`, `REFRESH_COOKIE_MAX_AGE_MS`
+   - Updated auth.controller.ts, auth.service.ts, auth.module.ts to use constants
+   - Removed fallback defaults (rely on env.validation.ts defaults)
+
+5. **Cleaned Up Dead Code**
+   - Removed `findByIdWithPassword` (unused)
+   - Removed `implements NestModule` from `AppModule` (empty configure method)
+   - Changed permissions default to `[]` in schema (service sets `DEFAULT_USER_PERMISSIONS`)
+
+6. **Added Docker Scripts**
+   - Added `docker:lint`, `docker:test`, `docker:test:e2e`, `docker:install` to package.json
+   - Installed missing `typescript-eslint` dependency
+
+7. **Fixed Pre-existing Lint Error**
+   - Fixed unnecessary escape `\[` in password regex in signup.dto.ts
+
+**Architecture After Refactoring**
+
+```
+users/
+├── schemas/
+│   └── user.schema.ts       # Schema only, no business logic
+├── types/
+│   └── user.types.ts        # Interface definitions
+├── users.module.ts
+├── users.repository.ts      # Data access layer
+└── users.service.ts         # Business logic + password hashing
+```
+
+**Verification**
+- Build: Passed
+- Lint: Passed
+- E2E Tests: 15/15 passed
+
 ---
 
 ## Phase 5 — Finish
