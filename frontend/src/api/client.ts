@@ -16,6 +16,7 @@ export const client = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Required for httpOnly cookies (refresh_token) on cross-origin requests
 })
 
 // Request interceptor: add auth token + track loading
@@ -55,8 +56,11 @@ client.interceptors.response.use(
 
     const originalRequest = error.config
 
-    // On 401, try to refresh the token once before logging out
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Check if this is an auth endpoint - skip refresh logic entirely
+    const isAuthEndpoint = originalRequest.url?.startsWith('/auth')
+
+    // On 401, try to refresh the token once before logging out (skip for auth endpoints)
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true
 
       try {
