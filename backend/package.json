@@ -20,7 +20,8 @@
     "docker:lint": "docker exec coursely-backend npm run lint",
     "docker:test": "docker exec coursely-backend npm test",
     "docker:test:e2e": "docker exec coursely-backend npm run test:e2e",
-    "docker:install": "docker exec coursely-backend npm install"
+    "docker:install": "docker exec coursely-backend npm install",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
@@ -56,6 +57,7 @@
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^8.33.0",
     "@typescript-eslint/parser": "^8.33.0",
+    "conventional-changelog-cli": "^5.0.0",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.0",

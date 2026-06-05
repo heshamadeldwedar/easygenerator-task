@@ -12,6 +12,7 @@ A full-stack sign-up / sign-in authentication module with React frontend and Nes
 - [API Endpoints](#api-endpoints)
 - [Project Structure](#project-structure)
 - [Testing](#testing)
+- [Changelog](#changelog)
 - [AI Assistance](#ai-assistance)
 
 ## Tech Stack
@@ -190,6 +191,26 @@ cd backend && npm test
 ```
 
 </details>
+
+## Changelog
+
+Changelogs are automatically generated from [Conventional Commits](https://www.conventionalcommits.org/) using GitHub Actions.
+
+| Package | Changelog |
+|---------|-----------|
+| Backend | [backend/CHANGELOG.md](backend/CHANGELOG.md) |
+| Frontend | [frontend/CHANGELOG.md](frontend/CHANGELOG.md) |
+
+**How it works:**
+- On every push to `main`, the changelog workflow runs
+- Parses commit messages (`feat:`, `fix:`, etc.) and updates CHANGELOG.md
+- Commits the updated changelogs back to the repository
+
+**Generate locally:**
+```bash
+cd backend && npm run changelog
+cd frontend && npm run changelog
+```
 
 ## AI Assistance
 
