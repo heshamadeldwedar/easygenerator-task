@@ -6,17 +6,24 @@ import type {
   User,
 } from "@/types/auth";
 
+/** Wrapper format from backend ResponseInterceptor */
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  requestId: string;
+}
+
 /**
  * Register a new user.
  */
 export async function signup(
   credentials: SignupCredentials
 ): Promise<AuthResponse> {
-  const response = await client.post<AuthResponse>(
+  const response = await client.post<ApiResponse<AuthResponse>>(
     "/auth/signup",
     credentials
   );
-  return response.data;
+  return response.data.data;
 }
 
 /**
@@ -25,11 +32,11 @@ export async function signup(
 export async function signin(
   credentials: LoginCredentials
 ): Promise<AuthResponse> {
-  const response = await client.post<AuthResponse>(
+  const response = await client.post<ApiResponse<AuthResponse>>(
     "/auth/signin",
     credentials
   );
-  return response.data;
+  return response.data.data;
 }
 
 /**
@@ -37,8 +44,8 @@ export async function signin(
  * This is a protected endpoint that requires a valid token.
  */
 export async function getMe(): Promise<User> {
-  const response = await client.get<User>("/auth/me");
-  return response.data;
+  const response = await client.get<ApiResponse<User>>("/auth/me");
+  return response.data.data;
 }
 
 /**
@@ -46,8 +53,8 @@ export async function getMe(): Promise<User> {
  * The backend reads the cookie automatically.
  */
 export async function refresh(): Promise<{ accessToken: string }> {
-  const response = await client.post<{ accessToken: string }>("/auth/refresh");
-  return response.data;
+  const response = await client.post<ApiResponse<{ accessToken: string }>>("/auth/refresh");
+  return response.data.data;
 }
 
 /**

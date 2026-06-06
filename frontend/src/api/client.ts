@@ -65,8 +65,8 @@ client.interceptors.response.use(
 
       try {
         // Call refresh endpoint (reads httpOnly cookie automatically)
-        const response = await client.post<{ accessToken: string }>('/auth/refresh')
-        const { accessToken } = response.data
+        const response = await client.post<{ success: boolean; data: { accessToken: string } }>('/auth/refresh')
+        const { accessToken } = response.data.data
 
         // Update stored token
         const stored = localStorage.getItem(AUTH_STORAGE_KEY)
