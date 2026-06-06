@@ -25,12 +25,6 @@ export class RefreshToken {
   expiresAt!: Date
 
   @Prop({
-    required: true,
-    index: true,
-  })
-  family!: string
-
-  @Prop({
     default: false,
   })
   revoked!: boolean

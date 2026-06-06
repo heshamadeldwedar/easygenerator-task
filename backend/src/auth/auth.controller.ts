@@ -22,6 +22,11 @@ import {
 import { AuthService } from './auth.service'
 import { SignupDto } from './dto/signup.dto'
 import { SigninDto } from './dto/signin.dto'
+import {
+  UnauthorizedResponseDto,
+  ConflictResponseDto,
+  ValidationErrorResponseDto,
+} from '@/common/dto/error-response.dto'
 import { Public } from '@/common/decorators/public.decorator'
 import { CurrentUser, CurrentUserPayload } from '@/common/decorators/current-user.decorator'
 import { RequirePermissions } from '@/common/decorators/require-permissions.decorator'
@@ -58,8 +63,8 @@ export class AuthController {
       },
     },
   })
-  @ApiResponse({ status: 409, description: 'Email already registered' })
-  @ApiResponse({ status: 422, description: 'Validation failed' })
+  @ApiResponse({ status: 409, description: 'Email already registered', type: ConflictResponseDto })
+  @ApiResponse({ status: 422, description: 'Validation failed', type: ValidationErrorResponseDto })
   async signup(@Body() dto: SignupDto, @Res({ passthrough: true }) response: FastifyReply) {
     const result = await this.authService.signup(dto)
     this.setRefreshCookie(response, result.refreshToken)
@@ -88,7 +93,7 @@ export class AuthController {
       },
     },
   })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  @ApiResponse({ status: 401, description: 'Invalid credentials', type: UnauthorizedResponseDto })
   async signin(@Body() dto: SigninDto, @Res({ passthrough: true }) response: FastifyReply) {
     const result = await this.authService.signin(dto)
     this.setRefreshCookie(response, result.refreshToken)
@@ -109,7 +114,7 @@ export class AuthController {
       },
     },
   })
-  @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
+  @ApiResponse({ status: 401, description: 'Invalid or expired refresh token', type: UnauthorizedResponseDto })
   async refresh(@Req() request: FastifyRequest, @Res({ passthrough: true }) response: FastifyReply) {
     const oldToken = request.cookies?.refresh_token
     if (!oldToken) {
@@ -156,7 +161,7 @@ export class AuthController {
       },
     },
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 401, description: 'Unauthorized', type: UnauthorizedResponseDto })
   async me(@CurrentUser() user: CurrentUserPayload) {
     return this.authService.getUser(user.id)
   }
