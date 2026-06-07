@@ -1,217 +1,163 @@
 # Auth Module
 
-A full-stack sign-up / sign-in authentication module with React frontend and NestJS backend.
-
-## Table of Contents
-
-- [Tech Stack](#tech-stack)
-- [Quick Start](#quick-start)
-- [Docker Architecture](#docker-architecture)
-- [Production Builds](#production-builds)
-- [Environment Variables](#environment-variables)
-- [API Endpoints](#api-endpoints)
-- [Project Structure](#project-structure)
-- [Testing](#testing)
-- [Changelog](#changelog)
-- [AI Assistance](#ai-assistance)
-
-## Tech Stack
-
-<p>
-  <img src="assets/vite.svg" alt="Vite" width="40" height="40" />
-  <img src="assets/react.svg" alt="React" width="40" height="40" />
-  <img src="assets/typescript.svg" alt="TypeScript" width="40" height="40" />
-  <img src="assets/nestjs.svg" alt="NestJS" width="40" height="40" />
-  <img src="assets/mongodb.svg" alt="MongoDB" width="40" height="40" />
-  <img src="assets/docker.svg" alt="Docker" width="40" height="40" />
-</p>
-
-- **Frontend**: Vite + React + TypeScript + Tailwind CSS
-- **Backend**: NestJS + Fastify + MongoDB
-- **Infrastructure**: Docker Compose
+A full-stack authentication system with sign-up and sign-in flows. The frontend is a React SPA that talks to a NestJS API, which persists data in MongoDB. Everything runs in Docker so you don't need to install anything on your machine.
 
 ## Quick Start
 
 ```bash
-# Clone and run (no host npm install needed!)
-git clone <repo-url>
-cd easygenerator
+git clone https://github.com/heshamadeldwedar/easygenerator-task
+cd easygenerator-task
+
+cp ./backend/.env.example ./backend/.env
+cp ./frontend/.env.example ./frontend/.env
+
 docker compose up --build
 ```
 
-That's it! All dependencies install inside Docker containers.
+The env files come with sensible defaults for local development. Edit them if you need to change secrets or ports.
 
-| Service  | URL                                   |
-|----------|---------------------------------------|
-| Frontend | http://localhost:5173                 |
-| Backend  | http://localhost:3000                 |
-| Swagger  | http://localhost:3000/api/docs        |
-| MongoDB  | localhost:27017                       |
+| Service  | URL                            |
+|----------|--------------------------------|
+| Frontend | http://localhost:5173          |
+| Backend  | http://localhost:3000          |
+| Swagger  | http://localhost:3000/api/docs |
+| MongoDB  | localhost:27017                |
 
-<details>
-<summary><strong>Prerequisites</strong></summary>
+## API Endpoints
 
-- Docker & Docker Compose (v2+)
-- Node.js 24+ (only for local development without Docker)
+All auth endpoints are prefixed with `/api/v1`. The health check stays at root for infrastructure probes.
 
-</details>
+| Method | Endpoint              | Auth   | Description                        |
+|--------|-----------------------|--------|------------------------------------|
+| POST   | /api/v1/auth/signup   | Public | Register a new user                |
+| POST   | /api/v1/auth/signin   | Public | Log in and receive tokens          |
+| POST   | /api/v1/auth/refresh  | Cookie | Exchange refresh token for new access token |
+| POST   | /api/v1/auth/logout   | Public | Clear the refresh cookie and revoke the token |
+| GET    | /api/v1/auth/me       | JWT    | Get the current user's profile     |
+| GET    | /health               | Public | Health check                       |
 
-## Docker Architecture
+## Database
 
-### Development (docker-compose.yml)
+MongoDB stores two collections.
 
-The dev setup uses bind mounts for live editing with hot reload:
+**users**
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Docker Network (coursely)                     │
-├───────────────┬───────────────────────┬─────────────────────────┤
-│    mongo      │       backend         │       frontend          │
-│   :27017      │       :3000           │       :5173             │
-│               │                       │                         │
-│ MongoDB data  │ NestJS + hot reload   │ Vite + HMR              │
-│ (volume)      │ (bind mount + anon    │ (bind mount + anon      │
-│               │  vol for node_modules)│  vol for node_modules)  │
-└───────────────┴───────────────────────┴─────────────────────────┘
-```
+| Field       | Type     | Notes                                      |
+|-------------|----------|--------------------------------------------|
+| _id         | ObjectId | Primary key                                |
+| email       | string   | Unique, lowercase, indexed                 |
+| name        | string   | Min 3 characters                           |
+| password    | string   | Bcrypt hash, excluded from queries by default |
+| permissions | string[] | PBAC permission strings (e.g. `user:read:self`) |
+| createdAt   | Date     | Auto-generated                             |
+| updatedAt   | Date     | Auto-generated                             |
 
-**Key design decisions:**
+**refreshtokens**
 
-- **node_modules in container**: Native modules (bcrypt, esbuild) are built for the container's Linux, avoiding host/container architecture mismatches. An anonymous volume shadows the host's node_modules.
-- **Service names vs host ports**: Service-to-service calls use Docker service names (`mongo:27017`). Browser-origin calls use host-published ports (`localhost:3000`) since the browser is outside Docker.
-- **Zero host install**: You don't need `npm install` on your host machine. Just run `docker compose up --build`.
+| Field     | Type     | Notes                                        |
+|-----------|----------|----------------------------------------------|
+| _id       | ObjectId | Primary key                                  |
+| userId    | ObjectId | References users._id, indexed                |
+| tokenHash | string   | SHA-256 hash of the token, indexed           |
+| expiresAt | Date     | TTL index auto-deletes expired tokens        |
+| revoked   | boolean  | Set to true on logout                        |
+| createdAt | Date     | Auto-generated                               |
+| updatedAt | Date     | Auto-generated                               |
 
-### Useful Commands
+## Environment Variables
 
-```bash
-# Start development
-docker compose up --build
+**Backend**
 
-# Rebuild a single service
-docker compose build backend
+| Variable             | Description                          | Default                              |
+|----------------------|--------------------------------------|--------------------------------------|
+| PORT                 | Server port                          | 3000                                 |
+| MONGO_URI            | MongoDB connection string            | mongodb://localhost:27017/coursely   |
+| JWT_ACCESS_SECRET    | Secret for signing JWTs (min 32 chars) | —                                  |
+| JWT_ACCESS_EXPIRY    | Access token TTL                     | 15m                                  |
+| REFRESH_TOKEN_EXPIRY | Refresh token TTL                    | 7d                                   |
+| COOKIE_SECRET        | Secret for signing cookies (min 32 chars) | —                               |
+| CORS_ORIGIN          | Allowed CORS origin                  | http://localhost:5173                |
+| BCRYPT_ROUNDS        | Password hashing cost factor         | 12                                   |
 
-# View logs
-docker compose logs -f backend
+**Frontend**
 
-# Stop everything
-docker compose down
+| Variable          | Description              | Default               |
+|-------------------|--------------------------|-----------------------|
+| VITE_API_BASE_URL | Backend URL for the browser | http://localhost:3000 |
 
-# Stop and remove volumes (clean slate)
-docker compose down -v
-```
+For Docker Compose these are already set in `docker-compose.yml`. For local development copy `.env.example` to `.env`.
 
-## Production Builds
+## How Authentication Works
 
-Production images are multi-stage, optimized, and run as non-root users. Build and run them directly (no compose file for production):
+The system uses short-lived access tokens and long-lived refresh tokens. Access tokens expire in 15 minutes and are sent in the `Authorization` header. Refresh tokens last 7 days and are stored in an HTTP-only cookie.
 
-```bash
-# Backend
-docker build -f backend/Dockerfile -t coursely-backend ./backend
-docker run -p 3000:3000 --env-file backend/.env coursely-backend
+**Why cookies for refresh tokens?**
 
-# Frontend (VITE_* vars are baked in at build time)
-docker build -f frontend/Dockerfile \
-  --build-arg VITE_API_BASE_URL=https://api.example.com \
-  -t coursely-frontend ./frontend
-docker run -p 80:80 coursely-frontend
-```
+Storing the refresh token in a cookie with `httpOnly: true` means JavaScript cannot read it. This protects against XSS attacks where malicious scripts steal tokens from localStorage or memory. The cookie is also set with `sameSite: lax` and `secure: true` in production to prevent CSRF and ensure it only travels over HTTPS.
 
-<details>
-<summary><strong>Environment Variables</strong></summary>
+**Token rotation**
 
-### Backend
+When the frontend calls `/api/v1/auth/refresh`, the backend does three things: verifies the old token, revokes it, and issues a new pair. This rotation limits the damage if a refresh token is somehow leaked because each token can only be used once.
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | Server port | `3000` |
-| `MONGO_URI` | MongoDB connection string | `mongodb://localhost:27017/coursely` |
-| `JWT_ACCESS_SECRET` | Secret for JWT signing (min 32 chars) | - |
-| `JWT_ACCESS_EXPIRY` | Access token TTL | `15m` |
-| `REFRESH_TOKEN_EXPIRY` | Refresh token TTL | `7d` |
-| `COOKIE_SECRET` | Cookie signing secret (min 32 chars) | - |
-| `CORS_ORIGIN` | Allowed CORS origin | `http://localhost:5173` |
-| `BCRYPT_ROUNDS` | Password hashing rounds | `12` |
+**Automatic cleanup**
 
-### Frontend
+MongoDB's TTL index on `expiresAt` automatically deletes expired tokens. No cron job needed.
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `VITE_API_BASE_URL` | Backend API URL (browser-side) | `http://localhost:3000` |
+## Permissions
 
-> **Note**: For Docker Compose, these are set in `docker-compose.yml`. For local dev, copy `.env.example` to `.env`.
+The API uses Permission-Based Access Control (PBAC) instead of traditional roles. Permissions follow a `resource:action:scope` format like `user:read:self`. Each user has an array of permissions stored directly on their document.
 
-</details>
+Why this approach? Roles are convenient but inflexible. A "moderator" role might bundle 20 permissions, but what if you need someone who can moderate but not ban? You end up creating more roles. With PBAC, you assign exactly the permissions each user needs. The code also becomes more explicit: `@RequirePermissions('user:read:self')` tells you exactly what access is needed.
 
-<details>
-<summary><strong>API Endpoints</strong></summary>
+Currently only `user:read:self` exists because that's all this auth module needs. The pattern is ready for expansion. When the app grows, you add permissions like `course:create`, `course:delete:own`, or `admin:users:read` without changing any authorization logic.
 
-Auth endpoints are prefixed with `/api/v1`. Health stays at root for infra probes.
+## Response Format
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/api/v1/auth/signup` | Public | Register new user |
-| `POST` | `/api/v1/auth/signin` | Public | Login user |
-| `POST` | `/api/v1/auth/refresh` | Cookie | Rotate refresh token |
-| `POST` | `/api/v1/auth/logout` | Public | Clear refresh cookie |
-| `GET` | `/api/v1/auth/me` | JWT | Get current user |
-| `GET` | `/health` | Public | Health check (root, no prefix) |
+Every response from the API includes a `requestId` that you can use to trace requests through logs. Success and error responses follow a consistent structure.
 
-See full API docs at http://localhost:3000/api/docs (Swagger).
+**Success response**
 
-</details>
-
-<details>
-<summary><strong>Project Structure</strong></summary>
-
-```
-easygenerator/
-├── frontend/              # Vite + React + TypeScript
-│   ├── Dockerfile         # Production (multi-stage, nginx)
-│   ├── Dockerfile.dev     # Development (hot reload)
-│   └── nginx.conf         # SPA routing config
-├── backend/               # NestJS + Fastify + MongoDB
-│   ├── Dockerfile         # Production (multi-stage, non-root)
-│   └── Dockerfile.dev     # Development (watch mode)
-├── assets/                # Logos and images
-├── docker-compose.yml     # Development environment
-└── README.md
+```json
+{
+  "success": true,
+  "data": { ... },
+  "requestId": "01J5X7..."
+}
 ```
 
-</details>
+**Error response**
 
-<details>
-<summary><strong>Testing</strong></summary>
-
-```bash
-# Backend tests (requires local npm install or exec into container)
-docker compose exec backend npm test
-
-# Or locally
-cd backend && npm test
+```json
+{
+  "success": false,
+  "error": {
+    "type": "validation-error",
+    "title": "Validation Error",
+    "status": 422,
+    "detail": "Validation failed",
+    "errors": [
+      { "field": "email", "message": "email must be an email" }
+    ]
+  },
+  "requestId": "01J5X7..."
+}
 ```
 
-</details>
+The `requestId` is a ULID generated by the server. It also appears in the `X-Request-Id` response header and in every log line. In production, when a user reports an issue, you can grep for their request ID and see exactly what happened:
+
+```
+[01J5X7...] POST /api/v1/auth/signin 401 12ms
+```
 
 ## Changelog
 
-Changelogs are automatically generated from [Conventional Commits](https://www.conventionalcommits.org/) using GitHub Actions.
+Changelogs are generated from conventional commits on every push to main.
 
-| Package | Changelog |
-|---------|-----------|
-| Backend | [backend/CHANGELOG.md](backend/CHANGELOG.md) |
+| Package  | Changelog                            |
+|----------|--------------------------------------|
+| Backend  | [backend/CHANGELOG.md](backend/CHANGELOG.md)   |
 | Frontend | [frontend/CHANGELOG.md](frontend/CHANGELOG.md) |
-
-**How it works:**
-- On every push to `main`, the changelog workflow runs
-- Parses commit messages (`feat:`, `fix:`, etc.) and updates CHANGELOG.md
-- Commits the updated changelogs back to the repository
-
-**Generate locally:**
-```bash
-cd backend && npm run changelog
-cd frontend && npm run changelog
-```
 
 ## AI Assistance
 
-This project was developed with AI assistance. See [AI.md](AI.md) for a detailed log of the development journey, including prompts, decisions, and outcomes for each phase.
+This project was developed with AI assistance. See [AI.md](AI.md) for the development log.
